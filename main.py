@@ -32,31 +32,42 @@ def get_date_data(
     return date_data
 
 
-with codecs.open("config.json",mode="r",encoding="utf-8") as config_file:
-    config = json.load(config_file)
-
-url = config["url"]
-# urlを特定の記事のページのものに差し替えればそのページのリンク一覧を取得可能です。
-html = requests.get(url)
-soup = BeautifulSoup(html.text, 'lxml')
+config = {}
+try:
+    with codecs.open("config.json",mode="r",encoding="utf-8") as config_file:
+        config = json.load(config_file)
+except Exception as config_error:
+    print(config_error)
+    exit()
+try:
+    url = config["url"]
+    # urlを特定の記事のページのものに差し替えればそのページのリンク一覧を取得可能です。
+    html = requests.get(url)
+    soup = BeautifulSoup(html.text, 'lxml')
+except Exception as scraping_error:
+    print(scraping_error)
+    exit()
 title_list = ""
-for a in soup.find_all('a'):
-    href = a.get("href")
-    title = a.get("title")
-    if title is None or href is None:
-        # ページ内リンクやリンク先のタイトルが存在しないリンクを除外
-        continue
-    if "wiki" in href:
-        # wikiのサーバー内のリンクかどうかを検出
-        if check_wiki_link(href):
-            if check_title(title):
-                # andにするとエラーが出るケースが出たので二重にif文を記述
-                title_list += (title+"\n")
-print(title_list)
+try:
+    for a in soup.find_all('a'):
+        href = a.get("href")
+        title = a.get("title")
+        if title is None or href is None:
+            # ページ内リンクやリンク先のタイトルが存在しないリンクを除外
+            continue
+        if "wiki" in href:
+            # wikiのサーバー内のリンクかどうかを検出
+            if check_wiki_link(href):
+                if check_title(title):
+                    # andにするとエラーが出るケースが出たので二重にif文を記述
+                    title_list += (title+"\n")
+    print(title_list)
+except Exception as wiki_error:
+    print(wiki_error)
+    exit()
 try:
     with codecs.open(filename="./log/{}.txt".format(get_date_data()), mode="w", encoding="utf-8") as f:
         f.write(title_list)
         # 保存
 except Exception as write_error:
     print(write_error)
-    # なぜかここでエラーが多発したのでエラーチェック
