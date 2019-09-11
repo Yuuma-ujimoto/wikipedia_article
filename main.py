@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import codecs
 import datetime
+import json
 
 
 def check_wiki_link(link):
@@ -31,7 +32,10 @@ def get_date_data(
     return date_data
 
 
-url = 'https://ja.wikipedia.org/wiki/メインページ'
+with codecs.open("config.json",mode="r",encoding="utf-8") as config_file:
+    config = json.load(config_file)
+
+url = config["url"]
 # urlを特定の記事のページのものに差し替えればそのページのリンク一覧を取得可能です。
 html = requests.get(url)
 soup = BeautifulSoup(html.text, 'lxml')
